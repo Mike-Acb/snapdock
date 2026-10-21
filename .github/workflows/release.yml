@@ -1,0 +1,50 @@
+name: Release
+
+# Push a tag such as v0.0.1 to build SnapDock and publish it as a GitHub release.
+# The tag must match CFBundleShortVersionString in App/Info.plist.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version
+        run: |
+          VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' App/Info.plist)"
+          if [[ "$GITHUB_REF_NAME" != "v$VERSION" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match App/Info.plist version $VERSION"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      # The app must link the macOS 26 SDK to keep its look, so pick an Xcode 26 install.
+      - name: Select Xcode 26
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -rV | head -1)"
+          if [[ -z "$XCODE" ]]; then
+            echo "::error::No Xcode 26 found; installed: $(ls -d /Applications/Xcode*.app | xargs)"
+            exit 1
+          fi
+          echo "DEVELOPER_DIR=$XCODE/Contents/Developer" >> "$GITHUB_ENV"
+          echo "SNAPDOCK_SDK=$XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" >> "$GITHUB_ENV"
+          echo "Using $XCODE"
+
+      - name: Test
+        run: swift test --build-system native --sdk "$SNAPDOCK_SDK"
+
+      - name: Package
+        run: ./Scripts/package-release.sh
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "dist/SnapDock-$VERSION.dmg" \
+            --title "SnapDock $VERSION" --generate-notes
