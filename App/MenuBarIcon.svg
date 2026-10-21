@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+  <defs>
+    <clipPath id="keep"><polygon points="0,0 11,0 18,7 18,18 0,18"/></clipPath>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="18" height="18">
+      <rect width="18" height="18" fill="#fff"/>
+      <path d="M3.6 9 H6.2 L9.6 13.6 H14.4 M10.4 9 H14.4" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <polygon points="12,1 12,6 17,6" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g mask="url(#m)"><rect x="1" y="1" width="16" height="16" rx="3.5" clip-path="url(#keep)"/></g>
+  <polygon points="12,1 12,6 17,6"/>
+</svg>
